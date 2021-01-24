@@ -1,0 +1,43 @@
+name: rumahinternet
+description: A new Flutter project.
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^0.1.3
+  barcode_scan: ^2.0.1
+  url_launcher: ^5.6.0
+  http: ^0.12.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+
+  assets:
+    - assets/rumahinternet.png
+    - assets/as.png
+
+  fonts:
+    - family: Source Sans Pro
+      fonts:
+      - asset: fonts/SourceSansPro-Regular.ttf
+
+    - family: FrankieHealthy
+      fonts:
+      - asset: fonts/FrankieHealthy.ttf
+
+    - family: Stanberry
+      fonts:
+      - asset: fonts/Stanberry.ttf
+
+  uses-material-design: true
