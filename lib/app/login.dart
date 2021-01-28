@@ -1,19 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:rumahinternet/ProgressHUD.dart';
+import 'package:rumahinternet/api/ApiService.dart';
+import 'package:rumahinternet/models/LoginModel.dart';
 import '../screen/home.dart';
 
 class Login extends StatefulWidget {
-  
   @override
   _LoginState createState() => _LoginState();
 }
 
 class _LoginState extends State<Login> {
+  final scaffoldKey = GlobalKey<ScaffoldState>();
+  GlobalKey<FormState> globalFormKey = new GlobalKey<FormState>();
+  LoginRequestModel requestModel;
+
+  bool isApiCallProcess = false;
+
+  @override
+  void initState() {
+    super.initState();
+    requestModel = new LoginRequestModel();
+  }
 
   @override
   Widget build(BuildContext context) {
+    return ProgressHUD(
+      child: _uiSteup(context),
+      inAsyncCall: isApiCallProcess,
+      opacity: 0.3,
+    );
+  }
+
+  @override
+  Widget _uiSteup(BuildContext context) {
     return Scaffold(
+      key: scaffoldKey,
       backgroundColor: Colors.white,
       body: Form(
+        key: globalFormKey,
         child: SingleChildScrollView(
           child: Container(
             width: MediaQuery.of(context).size.height - 50,
@@ -21,7 +45,7 @@ class _LoginState extends State<Login> {
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 24),
               child: Column(
-                children: <Widget> [
+                children: <Widget>[
                   SizedBox(
                     height: 40,
                   ),
@@ -38,14 +62,15 @@ class _LoginState extends State<Login> {
                     height: 20,
                   ),
                   TextFormField(
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontFamily: "Stanberry"
-                    ),
+                    keyboardType: TextInputType.emailAddress,
+                    onSaved: (input) => requestModel.email = input,
+                    validator: (input) => !input.contains("@")
+                        ? "Email id Should be Valid"
+                        : null,
+                    style: TextStyle(fontSize: 16, fontFamily: "Stanberry"),
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black)
-                      ),
+                          borderSide: BorderSide(color: Colors.black)),
                       prefixIcon: Icon(
                         Icons.mail,
                         size: 20,
@@ -67,15 +92,16 @@ class _LoginState extends State<Login> {
                     height: 20,
                   ),
                   TextFormField(
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontFamily: "Stanberry"
-                    ),
+                    keyboardType: TextInputType.text,
+                    onSaved: (input) => requestModel.password = input,
+                    validator: (input) => input.length < 7
+                        ? "Password should be more than 7 character"
+                        : null,
+                    style: TextStyle(fontSize: 16, fontFamily: "Stanberry"),
                     obscureText: true,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black)
-                      ),
+                          borderSide: BorderSide(color: Colors.black)),
                       prefixIcon: Icon(
                         Icons.lock,
                         size: 20,
@@ -97,9 +123,7 @@ class _LoginState extends State<Login> {
                     height: 5,
                   ),
                   GestureDetector(
-                    onTap: (){
-                      
-                    },
+                    onTap: () {},
                     child: Container(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
@@ -115,66 +139,61 @@ class _LoginState extends State<Login> {
                   SizedBox(
                     height: 50,
                   ),
-                  RaisedButton(
-                    padding: EdgeInsets.symmetric(horizontal: 155, vertical: 20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(40.0),
+                  FlatButton(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 155, vertical: 20),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(40.0),
                       ),
                       color: Colors.blueAccent,
                       textColor: Colors.white,
                       child: Text(
                         "Login",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontFamily: "Stanberry"
+                        style: TextStyle(fontSize: 18, fontFamily: "Stanberry"),
                       ),
-                    ),
-                    onPressed: (){
-                      Navigator.pushReplacement(context, MaterialPageRoute(
-                        builder: (context) => Home(),
-                      ));
-                    }),
+                      onPressed: () {
+                        if (validateAndSave()) {
+                          setState(() {
+                            isApiCallProcess = true;
+                          });
+                          ApiService apiService = new ApiService();
+                          apiService.login(requestModel).then((value) {
+                            setState(() {
+                              isApiCallProcess = false;
+                            });
+                            if (value.token.isNotEmpty) {
+                              final snackbar = SnackBar(
+                                content: Text("LOGIN SUCCESFULL"),
+                              );
+                              
+                              Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => Home(),
+                                  ));
+                                  scaffoldKey.currentState.showSnackBar(snackbar);
+                            } else {
+                              final snackbar = SnackBar(
+                                content: Text(value.error),
+                              );
+                              scaffoldKey.currentState.showSnackBar(snackbar);
+                            }
+                          });
+                          print(requestModel.toJson());
+                        }
+                      }),
                   SizedBox(
-                    height: 30,
+                    height: 170,
                   ),
                   Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Don't have Account? ",
-                      style: TextStyle(fontFamily: "Stanberry"),
-                      ),
-                    GestureDetector(
-                      onTap: (){
-                         
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: Text("Create new one", style: TextStyle(
-                            color: Colors.blue,
-                            fontSize: 16,
-                            fontFamily: "Stanberry",
-                          decoration: TextDecoration.underline
-                        ),),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                    height: 135,
-                  ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Copyright © Rumah Internet",
-                      style: TextStyle(
-                        fontFamily: "Stanberry",
-                        fontSize: 14
-                        ),
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Copyright © Rumah Internet",
+                        style: TextStyle(fontFamily: "Stanberry", fontSize: 14),
                       ),
                     ],
-                  ) 
+                  )
                 ],
               ),
             ),
@@ -182,5 +201,15 @@ class _LoginState extends State<Login> {
         ),
       ),
     );
+  }
+
+  bool validateAndSave() {
+    final form = globalFormKey.currentState;
+    if (form.validate()) {
+      form.save();
+      return true;
+    } else {
+      return false;
+    }
   }
 }
